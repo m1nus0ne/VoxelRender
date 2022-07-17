@@ -2,6 +2,6 @@
 
 public static class ImageHandler
 {
-    public static Bitmap heightMap =new Bitmap("heightMap.jpg");
-    public static Bitmap textureMap =new Bitmap("textureMap.jpg");
+    public static Bitmap heightMap =new Bitmap("heightMap.bmp");
+    public static Bitmap textureMap =new Bitmap("textureMap.bmp");
 }

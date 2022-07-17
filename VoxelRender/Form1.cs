@@ -12,11 +12,9 @@ public partial class Form1 : Form
 
     public Form1()
     {
+        vr = new VoxelRendering();
         InitializeComponent();
-        var tmr = new Timer(){Interval = 1};
-        tmr.Tick += (sender, args) => Invalidate();
         
-       
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -27,7 +25,7 @@ public partial class Form1 : Form
         {
             DoubleBuffered = true;
             // Create a new bitmap.
-            Bitmap bmp = new Bitmap(1000,1000,PixelFormat.Format24bppRgb);
+            Bitmap bmp = new Bitmap(1000, 1000, PixelFormat.Format24bppRgb);
 
             // Lock the bitmap's bits.  
             Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
@@ -47,7 +45,7 @@ public partial class Form1 : Form
 
             var rnd = new Random();
             // Set every third value to 255. A 24bpp bitmap will look red.  
-            
+
             rnd.NextBytes(rgbValues);
             // Copy the RGB values back to the bitmap
             Marshal.Copy(rgbValues, 0, ptr, bytes);
@@ -55,23 +53,12 @@ public partial class Form1 : Form
             // Unlock the bits.
             bmp.UnlockBits(bmpData);
 
-            // Draw the modified image.
+            // Draw the modified image.aww
             e.Graphics.DrawImage(bmp, 0, 0);
         }
 
-        
-        var b = new Bitmap(100, 100, PixelFormat.Format24bppRgb);
-        var h = new BMPHandler(b);
-        for (int i = 0; i < 100; i++)
-        {
-            for (int j = 0; j < 50; j++)
-            {
-                h[i, i] = (100, 100, 100);
-            }
-        }
-        g.DrawImage(h.GetBMP(),Point.Empty);
-        
 
-
+        vr.Update();
+        g.DrawImage(vr.screenImage.GetBmp(),Point.Empty);
     }
 }
