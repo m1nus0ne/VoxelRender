@@ -7,7 +7,7 @@ public class VoxelRendering
     public BMPHandler screenImage;
     private int[,] heightMap;
     private (byte r, byte g, byte b)[,] textureMap;
-    private Player Player;
+    public  Player Player;
 
 
     public VoxelRendering()
@@ -15,19 +15,19 @@ public class VoxelRendering
         GetHeightMapInts();
         textureMap = new BMPHandler(ImageHandler.textureMap).matrix;
         Player = new Player();
-        screenImage = new BMPHandler(new Bitmap(150, 200, PixelFormat.Format24bppRgb));
+        screenImage = new BMPHandler(new Bitmap(500,500,PixelFormat.Format24bppRgb));
     }
 
     void GetHeightMapInts()
     {
         var heightHandler = new BMPHandler(ImageHandler.heightMap);
-        var (height, width) = (heightHandler.matrix.GetLength(0), heightHandler.matrix.GetLength(1));
+        var (height, width) = (heightHandler.Height,heightHandler.Width);
         heightMap = new int[height, width];
         for (int i = 0; i < height; i++)
         {
             for (int j = 0; j < width; j++)
             {
-                heightMap[i, j] = heightHandler[i, j].r + heightHandler[i, j].g + heightHandler[i, j].b;
+                heightMap[i, j] = heightHandler[j, i].r + heightHandler[j, i].g + heightHandler[j, i].b;
             }
         }
     }
@@ -39,23 +39,21 @@ public class VoxelRendering
         var y_buffer = new int[Config.WindowWidth];
         Array.Fill(y_buffer, Config.WindowHeight);
         
-    
-    
-        var rayAngle = Player.Angles.oxy - Config.FOV;
+        var rayAngle = Player.Angles.X - Config.FOV;
         for (int ray = 0; ray < Config.WindowWidth; ray++)
         {
             var sinA = Math.Sin(rayAngle);
             var cosA = Math.Cos(rayAngle);
-            for (double depth = 0; depth < Config.RayDistance; depth++)
+            for (double depth = 0; depth < Config.RayDistance; depth+=1)
             {
-                var x = (int) (Player.Pos.x + depth * cosA);
+                var x = (int) (Player.Pos.X + depth * cosA);
                 if (0 < x && x < Config.MapWidth)
                 {
-                    var y = (int) (Player.Pos.x + depth * sinA);
+                    var y = (int) (Player.Pos.X + depth * sinA);
                     if (0 < y && x < Config.MapHeight)
                     {
-                        depth *= Math.Cos(Player.Angles.oxy - rayAngle);
-                        var heightOnSceen = (int) ((Player.Pos.z - heightMap[x,y]) / depth);
+                        
+                        var heightOnSceen = (int) ((Player.Pos.Z - heightMap[x,y]) * depth);
                         if (heightOnSceen < y_buffer[ray])
                         {
                             if (heightOnSceen < 0)
@@ -64,6 +62,7 @@ public class VoxelRendering
                             {
                                 screenImage[ray, screenY] =
                                     textureMap[x,y];
+                                
                             }
                         }
                     }
@@ -73,7 +72,7 @@ public class VoxelRendering
             rayAngle += Config.deltaAngle;
         }
     
-        screenImage.Update();
+        screenImage.UpdateBytes();
         
     }
 }

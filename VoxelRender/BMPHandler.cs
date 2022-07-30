@@ -3,15 +3,14 @@
 public class BMPHandler
 {
     private Bitmap BMP;
-    private int Stride;
-    private int Height;
-    private int Width;
+    public int Stride;
+    public int Height;
+    public int Width;
     private int BPP;
     public (byte r, byte g, byte b)[,] matrix;
 
     public BMPHandler(Bitmap bmp)
     {
-        //TODO: Стоковое 32bpp привести к 24bpp
         BMP = bmp;
         Height = bmp.Height;
         Width = bmp.Width;
@@ -27,8 +26,8 @@ public class BMPHandler
 
     public (byte r, byte g, byte b) this[int x, int y]
     {
-        set { matrix[x, y] = value; }
-        get { return matrix[x, y]; }
+        set { matrix[y, x] = value; }
+        get { return matrix[y, x]; }
     }
 
     private void SetMatrix()
@@ -39,16 +38,16 @@ public class BMPHandler
 
         matrix = new (byte red, byte green, byte blue)[Height, Width];
 
-        for (int i = 0; i < matrix.GetLength(0); i++)
+        for (int i = 0; i < Height; i++)
         {
-            for (int j = 0; j < matrix.GetLength(1); j++)
+            for (int j = 0; j < Width; j++)
             {
                 matrix[i, j] = (bytes[i][j * BPP], bytes[i][j * BPP + 1], bytes[i][j * BPP + 2]);
             }
         }
     }
 
-    public void Update()
+    public void UpdateBytes()
     {
         var bytesM = new byte[Height, Stride];
         for (int i = 0; i < Height; i++)
@@ -61,13 +60,8 @@ public class BMPHandler
             }
         }
 
-        var pos = 0;
-        var bytesArr = new byte[Stride * Height];
-        foreach (var b in bytesM)
-        {
-            bytesArr[pos++] = b;
-        }
+        
 
-        BMP.SetBitmapBytes(bytesArr);
+        BMP.SetBitmapBytes(bytesM.Cast<byte>().ToArray());
     }
 }

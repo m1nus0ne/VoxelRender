@@ -1,14 +1,21 @@
-﻿namespace VoxelRender;
+﻿using System.Numerics;
+
+namespace VoxelRender;
 
 public class Player
 {
-    public (float x, float y, float z) Pos;
-    public (double oxy, double oyz) Angles;
+    public Vector3 Pos;
+    public Vector2 Angles;
 
     public Player()
     {
-        Pos = (10f, 10f, 10f);
-        Angles = (0, 0);
+        Pos = new Vector3(0, 0, 0);
+        Angles = new Vector2(0, 0);
     }
 
+    public Player(Vector3 pos, Vector2 angles)
+    {
+        Pos = pos;
+        Angles = angles;
+    }
 }

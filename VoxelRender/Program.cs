@@ -1,19 +1,28 @@
 using System.Drawing.Imaging;
+using Timer = System.Windows.Forms.Timer;
 
 namespace VoxelRender;
 
 static class Program
 {
-    /// <summary>
-    ///  The main entry point for the application.
-    /// </summary>
+  
     [STAThread]
     static void Main()
     {
-        // To customize application configuration such as set high DPI settings or default font,
-        // see https://aka.ms/applicationconfiguration.
-        
         ApplicationConfiguration.Initialize();
-        Application.Run(new Form1());
+        var vxlRender = new VoxelRendering();
+        var mainForm = new Form1(vxlRender);
+        mainForm.KeyDown += (sender, args) => KeysHandler.OnPress(args);
+        mainForm.KeyUp += (sender, args) => KeysHandler.OnRelease(args);
+        var tmr = new Timer();
+        tmr.Interval = 20;
+        tmr.Tick += (sender, args) =>
+        {
+            KeysHandler.Update();
+            mainForm.Invalidate();
+        };
+        KeysHandler.Player = vxlRender.Player;
+        tmr.Start();
+        Application.Run(mainForm);
     }
 }
