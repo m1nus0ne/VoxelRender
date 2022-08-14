@@ -2,26 +2,27 @@
 
 public class BMPHandler
 {
-    private Bitmap BMP;
-    public int Stride;
+    private Bitmap Image;
+    private readonly int _stride;
     public int Height;
     public int Width;
     private int BPP;
+    private byte[] _bmpBytes;
     public (byte r, byte g, byte b)[,] matrix;
 
-    public BMPHandler(Bitmap bmp)
+    public BMPHandler(Bitmap image)
     {
-        BMP = bmp;
-        Height = bmp.Height;
-        Width = bmp.Width;
-        BPP = Image.GetPixelFormatSize(bmp.PixelFormat) / 8;
-        Stride = (Width * BPP) + ((Width * BPP) % 4);
+        Image = image;
+        Height = image.Height;
+        Width = image.Width;
+        BPP = System.Drawing.Image.GetPixelFormatSize(image.PixelFormat) / 8;
+        _stride = (Width * BPP) + ((Width * BPP) % 4);
         SetMatrix();
     }
-
+    
     public Bitmap GetBmp()
     {
-        return BMP;
+        return Image;
     }
 
     public (byte r, byte g, byte b) this[int x, int y]
@@ -32,8 +33,8 @@ public class BMPHandler
 
     private void SetMatrix()
     {
-        var bytes = BMP.GetBitmapBytes()
-            .Chunk(Stride)
+        var bytes = Image.GetBitmapBytes()
+            .Chunk(_stride)
             .ToArray();
 
         matrix = new (byte red, byte green, byte blue)[Height, Width];
@@ -49,7 +50,7 @@ public class BMPHandler
 
     public void UpdateBytes()
     {
-        var bytesM = new byte[Height, Stride];
+        var bytesM = new byte[Height, _stride];
         for (int i = 0; i < Height; i++)
         {
             for (int j = 0; j < Width; j++)
@@ -61,7 +62,12 @@ public class BMPHandler
         }
 
         
+        
+        Image.SetBitmapBytes(bytesM.Cast<byte>().ToArray());
+    }
 
-        BMP.SetBitmapBytes(bytesM.Cast<byte>().ToArray());
+    public void Clear()
+    {
+        Image.SetBitmapBytes(new byte[Height * _stride]);
     }
 }

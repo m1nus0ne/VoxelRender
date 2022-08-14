@@ -6,16 +6,16 @@ public class VoxelRendering
 {
     public BMPHandler screenImage;
     private int[,] heightMap;
-    private (byte r, byte g, byte b)[,] textureMap;
+    private (byte r, byte g, byte b)[,] _textureMap;
     public  Player Player;
-
+    private int[] _yBuffer;
 
     public VoxelRendering()
     {
         GetHeightMapInts();
-        textureMap = new BMPHandler(ImageHandler.textureMap).matrix;
+        _textureMap = new BMPHandler(ImageHandler.textureMap).matrix;
         Player = new Player();
-        screenImage = new BMPHandler(new Bitmap(500,500,PixelFormat.Format24bppRgb));
+        screenImage = new BMPHandler(new Bitmap(Config.WindowWidth,Config.WindowHeight,PixelFormat.Format24bppRgb));
     }
 
     void GetHeightMapInts()
@@ -27,7 +27,7 @@ public class VoxelRendering
         {
             for (int j = 0; j < width; j++)
             {
-                heightMap[i, j] = heightHandler[j, i].r + heightHandler[j, i].g + heightHandler[j, i].b;
+                heightMap[i, j] = heightHandler[j, i].r;
             }
         }
     }
@@ -42,9 +42,10 @@ public class VoxelRendering
         var rayAngle = Player.Angles.X - Config.FOV;
         for (int ray = 0; ray < Config.WindowWidth; ray++)
         {
+            var firstContact = false;
             var sinA = Math.Sin(rayAngle);
             var cosA = Math.Cos(rayAngle);
-            for (double depth = 0; depth < Config.RayDistance; depth+=1)
+            for (double depth = 1; depth < Config.RayDistance; depth+=1)
             {
                 var x = (int) (Player.Pos.X + depth * cosA);
                 if (0 < x && x < Config.MapWidth)
@@ -53,7 +54,12 @@ public class VoxelRendering
                     if (0 < y && x < Config.MapHeight)
                     {
                         
-                        var heightOnSceen = (int) ((Player.Pos.Z - heightMap[x,y]) * depth);
+                        var heightOnSceen = (int) ((Player.Pos.Z - heightMap[x,y]) / depth*500);
+                        // if (!firstContact)
+                        // {
+                        //     y_buffer[ray] = Math.Min(heightOnSceen, Config.WindowHeight);
+                        //     firstContact = true;
+                        // }
                         if (heightOnSceen < y_buffer[ray])
                         {
                             if (heightOnSceen < 0)
@@ -61,7 +67,7 @@ public class VoxelRendering
                             for (int screenY = heightOnSceen; screenY < y_buffer[ray]; screenY++)
                             {
                                 screenImage[ray, screenY] =
-                                    textureMap[x,y];
+                                    _textureMap[x,y];
                                 
                             }
                         }

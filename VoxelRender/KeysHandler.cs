@@ -85,7 +85,7 @@ public static class KeysHandler
 
     public static void Update()
     {
-        Player.Angles += _deltaAnlge;
-        Player.Pos += _direction;
+        Player.Angles += _deltaAnlge*10;
+        Player.Pos += _direction*10;
     }
 }
