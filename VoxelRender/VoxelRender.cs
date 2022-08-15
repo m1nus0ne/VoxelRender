@@ -15,7 +15,7 @@ public class VoxelRendering
         GetHeightMapInts();
         _textureMap = new BMPHandler(ImageHandler.textureMap).matrix;
         Player = new Player();
-        screenImage = new BMPHandler(new Bitmap(Config.WindowWidth,Config.WindowHeight,PixelFormat.Format24bppRgb));
+        screenImage = new BMPHandler(new Bitmap(Config.WindowWidth,Config.WindowHeight,PixelFormat.Format32bppRgb));
     }
 
     void GetHeightMapInts()
@@ -38,38 +38,42 @@ public class VoxelRendering
     {
         var y_buffer = new int[Config.WindowWidth];
         Array.Fill(y_buffer, Config.WindowHeight);
+        screenImage.Clear();
         
-        var rayAngle = Player.Angles.X - Config.FOV;
+        var rayAngle = Player.Angles.X - Config.HFOV;
         for (int ray = 0; ray < Config.WindowWidth; ray++)
         {
             var firstContact = false;
             var sinA = Math.Sin(rayAngle);
             var cosA = Math.Cos(rayAngle);
-            for (double depth = 1; depth < Config.RayDistance; depth+=1)
+            for (int depth = 1; depth < Config.RayDistance; depth++)
             {
                 var x = (int) (Player.Pos.X + depth * cosA);
                 if (0 < x && x < Config.MapWidth)
                 {
-                    var y = (int) (Player.Pos.X + depth * sinA);
+                    var y = (int) (Player.Pos.Y + depth * sinA);
                     if (0 < y && x < Config.MapHeight)
                     {
                         
-                        var heightOnSceen = (int) ((Player.Pos.Z - heightMap[x,y]) / depth*500);
-                        // if (!firstContact)
-                        // {
-                        //     y_buffer[ray] = Math.Min(heightOnSceen, Config.WindowHeight);
-                        //     firstContact = true;
-                        // }
+                        var heightOnSceen = (int) ((Player.Pos.Z - heightMap[x,y]) / depth*620+Player.Angles.Y);
+                        if (!firstContact)
+                        {
+                            y_buffer[ray] = Math.Min(heightOnSceen, Config.WindowHeight);
+                            firstContact = true;
+                        }
+                        if (heightOnSceen < 0)
+                            heightOnSceen = 0;
                         if (heightOnSceen < y_buffer[ray])
                         {
-                            if (heightOnSceen < 0)
-                                heightOnSceen = 0;
+                            
                             for (int screenY = heightOnSceen; screenY < y_buffer[ray]; screenY++)
                             {
                                 screenImage[ray, screenY] =
                                     _textureMap[x,y];
                                 
                             }
+
+                            y_buffer[ray] = heightOnSceen;
                         }
                     }
                 }
