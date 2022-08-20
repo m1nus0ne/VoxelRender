@@ -9,6 +9,7 @@ public class BMPHandler
     private int BPP;
     private byte[] _bmpBytes;
     public (byte r, byte g, byte b)[,] matrix;
+    private byte[,] bytesM;
 
     public BMPHandler(Bitmap image)
     {
@@ -50,7 +51,7 @@ public class BMPHandler
 
     public void UpdateBytes()
     {
-        var bytesM = new byte[Height, _stride];
+        bytesM = new byte[Height, _stride];
         for (int i = 0; i < Height; i++)
         {
             for (int j = 0; j < Width; j++)
@@ -68,6 +69,6 @@ public class BMPHandler
 
     public void Clear()
     {
-        Image.SetBitmapBytes(new byte[Height * _stride]);
+        matrix = new (byte red, byte green, byte blue)[Height, Width];
     }
 }

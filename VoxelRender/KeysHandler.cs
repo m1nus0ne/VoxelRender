@@ -37,10 +37,10 @@ public static class KeysHandler
                 _deltaAnlge.X = -1;
                 break;
             case (int) Keys.Up:
-                _deltaAnlge.Y = -1;
+                _deltaAnlge.Y = 60;
                 break;
             case (int) Keys.Down:
-                _deltaAnlge.Y = 1;
+                _deltaAnlge.Y = -60;
                 break;
         }
     }
@@ -85,7 +85,8 @@ public static class KeysHandler
 
     public static void Update()
     {
-        Player.Angles += _deltaAnlge*10;
+        
+        Player.Angles += _deltaAnlge/18;
         Player.Pos += _direction*10;
     }
 }

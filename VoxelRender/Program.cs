@@ -1,4 +1,3 @@
-using System.Drawing.Imaging;
 using Timer = System.Windows.Forms.Timer;
 
 namespace VoxelRender;
@@ -15,7 +14,7 @@ static class Program
         mainForm.KeyDown += (sender, args) => KeysHandler.OnPress(args);
         mainForm.KeyUp += (sender, args) => KeysHandler.OnRelease(args);
         var tmr = new Timer();
-        tmr.Interval = 20;
+        tmr.Interval = 2;
         tmr.Tick += (sender, args) =>
         {
             KeysHandler.Update();
