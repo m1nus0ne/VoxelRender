@@ -25,6 +25,4 @@ public static class BitmapExtension
         Marshal.Copy(bytes,0,bmpData.Scan0,bytes.Length);
         bmp.UnlockBits(bmpData);
     }
-
-    
 }

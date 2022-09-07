@@ -11,17 +11,6 @@ static class Program
         ApplicationConfiguration.Initialize();
         var vxlRender = new VoxelRendering();
         var mainForm = new Form1(vxlRender);
-        mainForm.KeyDown += (sender, args) => KeysHandler.OnPress(args);
-        mainForm.KeyUp += (sender, args) => KeysHandler.OnRelease(args);
-        var tmr = new Timer();
-        tmr.Interval = 2;
-        tmr.Tick += (sender, args) =>
-        {
-            KeysHandler.Update();
-            mainForm.Invalidate();
-        };
-        KeysHandler.Player = vxlRender.Player;
-        tmr.Start();
         Application.Run(mainForm);
     }
 }

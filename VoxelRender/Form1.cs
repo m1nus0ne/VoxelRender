@@ -8,7 +8,7 @@ namespace VoxelRender;
 
 public partial class Form1 : Form
 {
-    private VoxelRendering vr;
+    private readonly VoxelRendering vr;
     private BMPHandler bmp;
     private int l;
 
@@ -16,22 +16,28 @@ public partial class Form1 : Form
     {
         bmp = new BMPHandler(new Bitmap(500, 500, PixelFormat.Format32bppRgb));
         vr = render;
+        KeyDown+=(sender, args) =>KeysHandler.OnPress(args);
+        KeyUp+=(sender, args) =>KeysHandler.OnRelease(args);
+        
         var tmr = new Timer();
         tmr.Interval = 10;
         tmr.Tick += (sender, args) => Invalidate();
         tmr.Start();
         InitializeComponent();
+        
     }
 
     protected override void OnPaint(PaintEventArgs e)
     {
         Size = new Size(1000, 800);
-        
+
         DoubleBuffered = true;
         var g = e.Graphics;
         vr.Update();
-        g.DrawImage(vr.screenImage.GetBmp(),0,0,1000,800);
+        g.DrawImage(vr.screenImage.GetBmp(), 0, 0, 1000, 800);
         g.DrawString(vr.Player.Pos.ToString(), new Font("arial", 30), new SolidBrush(Color.White), 20, 20);
         g.DrawString(vr.Player.Angles.ToString(), new Font("arial", 30), new SolidBrush(Color.White), 20, 70);
+        g.DrawString(vr.elapsedTime, new Font("arial", 30), new SolidBrush(Color.White), 20, 100);
     }
+
 }
