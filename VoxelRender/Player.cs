@@ -19,10 +19,13 @@ public class Player
 
     public void Update((Vector2 deltaPos, Vector2 deltaAngle) data)
     {
-        Angles += data.deltaAngle * (float) Math.PI / 36;
-        Pos += data.deltaPos.RotateRadians(Angles.X) ;
-        // Height += data.deltaPos.Z;
-        
+        Angles += data.deltaAngle * (float) Math.PI / 180;
+        //Pos += data.deltaPos.RotateRadians(Angles.X) ;
+        data.deltaPos *= Config.playerSpeed;
+        Pos.X += data.deltaPos.X * MathF.Cos(Angles.X) - data.deltaPos.Y * MathF.Sin(Angles.X);
+        Pos.Y += data.deltaPos.Y * MathF.Cos(Angles.X) + data.deltaPos.X * MathF.Sin(Angles.X);
+        //Height += data.deltaPos.Z;
+
     }
 }
 
