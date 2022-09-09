@@ -10,14 +10,14 @@ public class VoxelRendering
     private int[,] heightMap;
     private (byte r, byte g, byte b)[,] _textureMap;
     public Player Player;
-    private int[] y_buffer = new int[Config.ImageWidth];
+    private int[] y_buffer = new int[Config.WindowWidth];
 
     public VoxelRendering()
     {
         GetHeightMapInts();
         _textureMap = new BMPHandler(Config.textureMap).Matrix;
         Player = new Player();
-        screenImage = new BMPHandler(new Bitmap(Config.ImageWidth, Config.ImageHeight, PixelFormat.Format32bppRgb));
+        screenImage = new BMPHandler(new Bitmap(Config.WindowWidth, Config.WindowHeight, PixelFormat.Format32bppRgb));
     }
 
     void GetHeightMapInts()
@@ -34,7 +34,7 @@ public class VoxelRendering
         }
     }
 
-    private void CalculatePixels(int ray)
+    void CalculatePixels(int ray)
     {
         var rayAngle = Player.Angles.X - Config.HFOV + Config.deltaAngle * ray;
 
@@ -64,7 +64,7 @@ public class VoxelRendering
 
                     if (!firstContact)
                     {
-                        y_buffer[ray] = Math.Min(heightOnSceen, Config.ImageHeight);
+                        y_buffer[ray] = Math.Min(heightOnSceen, Config.WindowHeight);
                         firstContact = true;
                     }
 
@@ -91,9 +91,9 @@ public class VoxelRendering
         Player.Update(KeysHandler.GetState());
         Stopwatch stopWatch = new Stopwatch();
         stopWatch.Start();
-        Array.Fill(y_buffer, Config.ImageHeight);
+        Array.Fill(y_buffer, Config.WindowHeight);
         screenImage.Clear();
-        Parallel.For(0, Config.ImageWidth, CalculatePixels);
+        Parallel.For(0, Config.WindowWidth, CalculatePixels);
         screenImage.UpdateBytes();
         stopWatch.Stop();
         TimeSpan ts = stopWatch.Elapsed;
