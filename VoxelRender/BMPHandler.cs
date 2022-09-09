@@ -2,73 +2,73 @@
 
 public class BMPHandler
 {
-    private Bitmap Image;
+    private readonly Bitmap _image;
     private readonly int _stride;
-    public int Height;
-    public int Width;
-    private int BPP;
+    public readonly int Height;
+    public readonly int Width;
+    private readonly int _bpp;
     private byte[] _bmpBytes;
-    public (byte r, byte g, byte b)[,] matrix;
-    private byte[,] bytesM;
+    public (byte r, byte g, byte b)[,] Matrix;
+    private byte[,] _bytesM;
 
     public BMPHandler(Bitmap image)
     {
-        Image = image;
+        _image = image;
         Height = image.Height;
         Width = image.Width;
-        BPP = System.Drawing.Image.GetPixelFormatSize(image.PixelFormat) / 8;
-        _stride = (Width * BPP) + ((Width * BPP) % 4);
+        _bpp = System.Drawing.Image.GetPixelFormatSize(image.PixelFormat) / 8;
+        _stride = (Width * _bpp) + ((Width * _bpp) % 4);
         SetMatrix();
     }
     
     public Bitmap GetBmp()
     {
-        return Image;
+        return _image;
     }
 
     public (byte r, byte g, byte b) this[int x, int y]
     {
-        set { matrix[y, x] = value; }
-        get { return matrix[y, x]; }
+        set { Matrix[y, x] = value; }
+        get { return Matrix[y, x]; }
     }
 
     private void SetMatrix()
     {
-        var bytes = Image.GetBitmapBytes()
+        var bytes = _image.GetBitmapBytes()
             .Chunk(_stride)
             .ToArray();
 
-        matrix = new (byte red, byte green, byte blue)[Height, Width];
+        Matrix = new (byte red, byte green, byte blue)[Height, Width];
 
         for (int i = 0; i < Height; i++)
         {
             for (int j = 0; j < Width; j++)
             {
-                matrix[i, j] = (bytes[i][j * BPP], bytes[i][j * BPP + 1], bytes[i][j * BPP + 2]);
+                Matrix[i, j] = (bytes[i][j * _bpp], bytes[i][j * _bpp + 1], bytes[i][j * _bpp + 2]);
             }
         }
     }
 
     public void UpdateBytes()
     {
-        bytesM = new byte[Height, _stride];
+        _bytesM = new byte[Height, _stride];
         for (int i = 0; i < Height; i++)
         {
             for (int j = 0; j < Width; j++)
             {
-                bytesM[i, j * BPP] = matrix[i, j].r;
-                bytesM[i, j * BPP + 1] = matrix[i, j].g;
-                bytesM[i, j * BPP + 2] = matrix[i, j].b;
+                _bytesM[i, j * _bpp] = Matrix[i, j].r;
+                _bytesM[i, j * _bpp + 1] = Matrix[i, j].g;
+                _bytesM[i, j * _bpp + 2] = Matrix[i, j].b;
             }
         }
 
         
         
-        Image.SetBitmapBytes(bytesM.Cast<byte>().ToArray());
+        _image.SetBitmapBytes(_bytesM.Cast<byte>().ToArray());
     }
 
     public void Clear()
     {
-        matrix = new (byte red, byte green, byte blue)[Height, Width];
+        Matrix = new (byte red, byte green, byte blue)[Height, Width];
     }
 }

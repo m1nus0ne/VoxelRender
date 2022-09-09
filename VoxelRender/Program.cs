@@ -1,5 +1,3 @@
-using Timer = System.Windows.Forms.Timer;
-
 namespace VoxelRender;
 
 static class Program

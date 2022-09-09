@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Drawing.Imaging;
-using System.Numerics;
 
 namespace VoxelRender;
 
@@ -16,14 +15,14 @@ public class VoxelRendering
     public VoxelRendering()
     {
         GetHeightMapInts();
-        _textureMap = new BMPHandler(ImageHandler.textureMap).matrix;
+        _textureMap = new BMPHandler(Config.textureMap).Matrix;
         Player = new Player();
         screenImage = new BMPHandler(new Bitmap(Config.WindowWidth, Config.WindowHeight, PixelFormat.Format32bppRgb));
     }
 
     void GetHeightMapInts()
     {
-        var heightHandler = new BMPHandler(ImageHandler.heightMap);
+        var heightHandler = new BMPHandler(Config.heightMap);
         var (height, width) = (heightHandler.Height, heightHandler.Width);
         heightMap = new int[height, width];
         for (int i = 0; i < height; i++)
@@ -78,6 +77,7 @@ public class VoxelRendering
                             screenImage[ray, screenY] =
                                 _textureMap[x, y];
                         }
+
                         y_buffer[ray] = heightOnSceen;
                     }
                 }
@@ -88,21 +88,12 @@ public class VoxelRendering
 
     public void Update()
     {
-        
         Player.Update(KeysHandler.GetState());
         Stopwatch stopWatch = new Stopwatch();
         stopWatch.Start();
-        
         Array.Fill(y_buffer, Config.WindowHeight);
         screenImage.Clear();
-
-        // for (int i = 0; i < Config.WindowWidth; i++)
-        // {
-        //     CalculatePixels(i);
-        // }
         Parallel.For(0, Config.WindowWidth, CalculatePixels);
-        // Get the elapsed time as a TimeSpan value.
-
         screenImage.UpdateBytes();
         stopWatch.Stop();
         TimeSpan ts = stopWatch.Elapsed;
