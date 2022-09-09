@@ -1,0 +1,103 @@
+Index: VoxelRender/Config.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using System.IO;\r\n\r\nnamespace VoxelRender;\r\n\r\npublic static class Config\r\n{\r\n    #region GraphicSettings\r\n\r\n    public static int WindowWidth = 300;\r\n    public static int WindowHeight = 300;\r\n\r\n    public static int RayDistance = 800;\r\n    public static double FOV = Math.PI / 6;\r\n    public static double HFOV = Math.PI / 16;\r\n    public static double deltaAngle = HFOV / WindowWidth;\r\n\r\n    #endregion\r\n\r\n    #region PlayerSettings\r\n\r\n    public static float playerSpeed = 10f;\r\n\r\n    #endregion\r\n\r\n    public static Bitmap textureMap = new Bitmap(\"textureMap.bmp\");\r\n    public static Bitmap heightMap = new Bitmap(\"heightMap.bmp\");\r\n\r\n    //TODO: кидать exception при несовпадении размеров\r\n    public static int MapHeight = ImageHandler.heightMap.Height;\r\n    public static int MapWidth = ImageHandler.heightMap.Width;\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/Config.cs b/VoxelRender/Config.cs
+--- a/VoxelRender/Config.cs	(revision 506ec2d238c4b56c0fe23a967dba906e694575a6)
++++ b/VoxelRender/Config.cs	(date 1662733075806)
+@@ -4,6 +4,7 @@
+ 
+ public static class Config
+ {
++<<<<<<< HEAD
+     #region GraphicSettings
+ 
+     public static int WindowWidth = 300;
+@@ -29,4 +30,15 @@
+     public static int MapHeight = ImageHandler.heightMap.Height;
+     public static int MapWidth = ImageHandler.heightMap.Width;
+ 
++=======
++    public static int WindowWidth = 300;
++    public static int WindowHeight = 300;
++    public static int MapHeight = ImageHandler.heightMap.Height;
++    public static int MapWidth = ImageHandler.heightMap.Width;
++    
++    public static int RayDistance = 2000; 
++    public static double FOV = Math.PI/6;
++    public static double HFOV = Math.PI/16;
++    public static double deltaAngle = HFOV / WindowWidth;
++>>>>>>> 293e733 (да)
+ }
+Index: VoxelRender/Player.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using System.Numerics;\r\n\r\nnamespace VoxelRender;\r\n\r\npublic class Player\r\n{\r\n    public Vector2 Pos;\r\n    public Vector2 Angles;\r\n    public float Height;\r\n\r\n    public Player()\r\n    {\r\n        Pos = new Vector2(0, 0);\r\n        Angles = new Vector2(MathF.PI / 2, MathF.PI / 9);\r\n        Height = 270;\r\n    }\r\n\r\n    \r\n\r\n    public void Update((Vector2 deltaPos, Vector2 deltaAngle) data)\r\n    {\r\n        Angles += data.deltaAngle * (float) Math.PI / 180;\r\n        data.deltaPos *= Config.playerSpeed;\r\n        Pos.X += data.deltaPos.X * MathF.Cos(Angles.X) - data.deltaPos.Y * MathF.Sin(Angles.X);\r\n        Pos.Y += data.deltaPos.Y * MathF.Cos(Angles.X) + data.deltaPos.X * MathF.Sin(Angles.X);\r\n        //Height += data.deltaPos.Z;\r\n\r\n    }\r\n}\r\n\r\npublic static class VectorExt\r\n{\r\n    private const double DegToRad = Math.PI / 180;\r\n\r\n    public static Vector2 Rotate(this Vector2 v, double degrees)\r\n    {\r\n        return v.RotateRadians(degrees * DegToRad);\r\n    }\r\n\r\n    public static Vector2 RotateRadians(this Vector2 v, double radians)\r\n    {\r\n        var ca = (float) Math.Cos(radians);\r\n        var sa = (float) Math.Sin(radians);\r\n        return new Vector2(ca * v.X - sa * v.Y, sa * v.X + ca * v.Y);\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/Player.cs b/VoxelRender/Player.cs
+--- a/VoxelRender/Player.cs	(revision 506ec2d238c4b56c0fe23a967dba906e694575a6)
++++ b/VoxelRender/Player.cs	(date 1662733077518)
+@@ -19,12 +19,19 @@
+ 
+     public void Update((Vector2 deltaPos, Vector2 deltaAngle) data)
+     {
++<<<<<<< HEAD
+         Angles += data.deltaAngle * (float) Math.PI / 180;
+         data.deltaPos *= Config.playerSpeed;
+         Pos.X += data.deltaPos.X * MathF.Cos(Angles.X) - data.deltaPos.Y * MathF.Sin(Angles.X);
+         Pos.Y += data.deltaPos.Y * MathF.Cos(Angles.X) + data.deltaPos.X * MathF.Sin(Angles.X);
+         //Height += data.deltaPos.Z;
+ 
++=======
++        Angles += data.deltaAngle * (float) Math.PI / 36;
++        Pos += data.deltaPos.RotateRadians(Angles.X) ;
++        // Height += data.deltaPos.Z;
++        
++>>>>>>> 293e733 (да)
+     }
+ }
+ 
+Index: VoxelRender/KeysHandler.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using System.Numerics;\r\n\r\nnamespace VoxelRender;\r\n\r\npublic static class KeysHandler\r\n{\r\n    private static Vector2 _direction;\r\n    private static Vector2 _deltaAnlge;\r\n\r\n\r\n    public static void OnPress(KeyEventArgs e)\r\n    {\r\n        // TODO: Забахать направления и высоту\r\n        switch (e.KeyValue)\r\n        {\r\n            case (int) Keys.A:\r\n                _direction.Y = 1;\r\n                break;\r\n            case (int) Keys.D:\r\n                _direction.Y = -1;\r\n                break;\r\n            case (int) Keys.S:\r\n                _direction.X = -1;\r\n                break;\r\n            case (int) Keys.W:\r\n                _direction.X = 1;\r\n                break;\r\n            // case (int) Keys.Q:\r\n            //     _direction.Z = 1;\r\n            //     break;\r\n            // case (int) Keys.E:\r\n            //     _direction.Z = -1;\r\n            //     break;\r\n            case (int) Keys.Left:\r\n                _deltaAnlge.X = -1;\r\n                break;\r\n            case (int) Keys.Right:\r\n                _deltaAnlge.X = 1;\r\n                break;\r\n            case (int) Keys.Up:\r\n                _deltaAnlge.Y = 60;\r\n                break;\r\n            case (int) Keys.Down:\r\n                _deltaAnlge.Y = -60;\r\n                break;\r\n        }\r\n    }\r\n\r\n    public static void OnRelease(KeyEventArgs e)\r\n    {\r\n        switch (e.KeyValue)\r\n        {\r\n            case (int) Keys.A:\r\n            case (int) Keys.D:\r\n                _direction.Y = 0;\r\n                break;\r\n            case (int) Keys.S:\r\n            case (int) Keys.W:\r\n                _direction.X = 0;\r\n                break;\r\n            // case (int) Keys.Q:\r\n            //     _direction.Z = 0;\r\n            //     break;\r\n            // case (int) Keys.E:\r\n            //     _direction.Z = 0;\r\n            //     break;\r\n            case (int) Keys.Left:\r\n            case (int) Keys.Right:\r\n                _deltaAnlge.X = 0;\r\n                break;\r\n            case (int) Keys.Up:\r\n            case (int) Keys.Down:\r\n                _deltaAnlge.Y = 0;\r\n                break;\r\n        }\r\n    }\r\n\r\n    public static (Vector2, Vector2) GetState() => (_direction, _deltaAnlge);\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/KeysHandler.cs b/VoxelRender/KeysHandler.cs
+--- a/VoxelRender/KeysHandler.cs	(revision 506ec2d238c4b56c0fe23a967dba906e694575a6)
++++ b/VoxelRender/KeysHandler.cs	(date 1662733076972)
+@@ -16,6 +16,7 @@
+             case (int) Keys.A:
+                 _direction.Y = 1;
+                 break;
++<<<<<<< HEAD
+             case (int) Keys.D:
+                 _direction.Y = -1;
+                 break;
+@@ -25,6 +26,8 @@
+             case (int) Keys.W:
+                 _direction.X = 1;
+                 break;
++=======
++>>>>>>> 293e733 (да)
+             // case (int) Keys.Q:
+             //     _direction.Z = 1;
+             //     break;
+@@ -56,7 +59,11 @@
+                 break;
+             case (int) Keys.S:
+             case (int) Keys.W:
++<<<<<<< HEAD
+                 _direction.X = 0;
++=======
++                _direction.Y = 0;
++>>>>>>> 293e733 (да)
+                 break;
+             // case (int) Keys.Q:
+             //     _direction.Z = 0;

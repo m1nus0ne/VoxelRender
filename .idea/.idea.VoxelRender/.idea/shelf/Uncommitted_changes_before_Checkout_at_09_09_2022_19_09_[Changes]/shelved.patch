@@ -1,0 +1,19 @@
+Index: VoxelRender/BMPHandler.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>namespace VoxelRender;\r\n\r\npublic class BMPHandler\r\n{\r\n    private readonly Bitmap _image;\r\n    private readonly int _stride;\r\n    public readonly int Height;\r\n    public readonly int Width;\r\n    private readonly int _bpp;\r\n    private byte[] _bmpBytes;\r\n    public (byte r, byte g, byte b)[,] Matrix;\r\n    private byte[,] _bytesM;\r\n\r\n    public BMPHandler(Bitmap image)\r\n    {\r\n        _image = image;\r\n        Height = image.Height;\r\n        Width = image.Width;\r\n        _bpp = System.Drawing.Image.GetPixelFormatSize(image.PixelFormat) / 8;\r\n        _stride = (Width * _bpp) + ((Width * _bpp) % 4);\r\n        SetMatrix();\r\n    }\r\n    \r\n    public Bitmap GetBmp()\r\n    {\r\n        return _image;\r\n    }\r\n\r\n    public (byte r, byte g, byte b) this[int x, int y]\r\n    {\r\n        set { Matrix[y, x] = value; }\r\n        get { return Matrix[y, x]; }\r\n    }\r\n\r\n    private void SetMatrix()\r\n    {\r\n        var bytes = _image.GetBitmapBytes()\r\n            .Chunk(_stride)\r\n            .ToArray();\r\n\r\n        Matrix = new (byte red, byte green, byte blue)[Height, Width];\r\n\r\n        for (int i = 0; i < Height; i++)\r\n        {\r\n            for (int j = 0; j < Width; j++)\r\n            {\r\n                Matrix[i, j] = (bytes[i][j * _bpp], bytes[i][j * _bpp + 1], bytes[i][j * _bpp + 2]);\r\n            }\r\n        }\r\n    }\r\n\r\n    public void UpdateBytes()\r\n    {\r\n        _bytesM = new byte[Height, _stride];\r\n        for (int i = 0; i < Height; i++)\r\n        {\r\n            for (int j = 0; j < Width; j++)\r\n            {\r\n                _bytesM[i, j * _bpp] = Matrix[i, j].r;\r\n                _bytesM[i, j * _bpp + 1] = Matrix[i, j].g;\r\n                _bytesM[i, j * _bpp + 2] = Matrix[i, j].b;\r\n            }\r\n        }\r\n\r\n        \r\n        \r\n        _image.SetBitmapBytes(_bytesM.Cast<byte>().ToArray());\r\n    }\r\n\r\n    public void Clear()\r\n    {\r\n        Matrix = new (byte red, byte green, byte blue)[Height, Width];\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/BMPHandler.cs b/VoxelRender/BMPHandler.cs
+--- a/VoxelRender/BMPHandler.cs	(revision b4d620666f8a1396485b8f8b7917d2e89eeb0915)
++++ b/VoxelRender/BMPHandler.cs	(date 1662732539495)
+@@ -16,7 +16,7 @@
+         _image = image;
+         Height = image.Height;
+         Width = image.Width;
+-        _bpp = System.Drawing.Image.GetPixelFormatSize(image.PixelFormat) / 8;
++        _bpp = Image.GetPixelFormatSize(image.PixelFormat) / 8;
+         _stride = (Width * _bpp) + ((Width * _bpp) % 4);
+         SetMatrix();
+     }

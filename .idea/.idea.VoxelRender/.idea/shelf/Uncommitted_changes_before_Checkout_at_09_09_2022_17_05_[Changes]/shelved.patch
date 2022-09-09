@@ -1,0 +1,242 @@
+Index: VoxelRender/Config.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using System.IO;\r\n\r\nnamespace VoxelRender;\r\n\r\npublic static class Config\r\n{\r\n    #region GraphicSettings\r\n\r\n    public static int WindowWidth = 300;\r\n    public static int WindowHeight = 300;\r\n\r\n    public static int RayDistance = 800;\r\n    public static double FOV = Math.PI / 6;\r\n    public static double HFOV = Math.PI / 16;\r\n    public static double deltaAngle = HFOV / WindowWidth;\r\n\r\n    #endregion\r\n\r\n    #region PlayerSettings\r\n\r\n    public static float playerSpeed = 10f;\r\n\r\n    #endregion\r\n\r\n    public static Bitmap textureMap = new Bitmap(\"textureMap.bmp\");\r\n    public static Bitmap heightMap = new Bitmap(\"heightMap.bmp\");\r\n\r\n    //TODO: кидать exception при несовпадении размеров\r\n    public static int MapHeight = ImageHandler.heightMap.Height;\r\n    public static int MapWidth = ImageHandler.heightMap.Width;\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/Config.cs b/VoxelRender/Config.cs
+--- a/VoxelRender/Config.cs	(revision 506ec2d238c4b56c0fe23a967dba906e694575a6)
++++ b/VoxelRender/Config.cs	(date 1662725091062)
+@@ -1,5 +1,3 @@
+-using System.IO;
+-
+ namespace VoxelRender;
+ 
+ public static class Config
+@@ -9,7 +7,7 @@
+     public static int WindowWidth = 300;
+     public static int WindowHeight = 300;
+ 
+-    public static int RayDistance = 800;
++    public static int RayDistance = 2000;
+     public static double FOV = Math.PI / 6;
+     public static double HFOV = Math.PI / 16;
+     public static double deltaAngle = HFOV / WindowWidth;
+@@ -18,14 +16,15 @@
+ 
+     #region PlayerSettings
+ 
+-    public static float playerSpeed = 10f;
++    public static float playerGSpeed = 10f;
++    public static float playerVSpeed = 10f;
+ 
+     #endregion
+ 
+     public static Bitmap textureMap = new Bitmap("textureMap.bmp");
+     public static Bitmap heightMap = new Bitmap("heightMap.bmp");
+ 
+-    //TODO: кидать exception при несовпадении размеров
++   
+     public static int MapHeight = ImageHandler.heightMap.Height;
+     public static int MapWidth = ImageHandler.heightMap.Width;
+ 
+Index: VoxelRender/Player.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using System.Numerics;\r\n\r\nnamespace VoxelRender;\r\n\r\npublic class Player\r\n{\r\n    public Vector2 Pos;\r\n    public Vector2 Angles;\r\n    public float Height;\r\n\r\n    public Player()\r\n    {\r\n        Pos = new Vector2(0, 0);\r\n        Angles = new Vector2(MathF.PI / 2, MathF.PI / 9);\r\n        Height = 270;\r\n    }\r\n\r\n    \r\n\r\n    public void Update((Vector2 deltaPos, Vector2 deltaAngle) data)\r\n    {\r\n        Angles += data.deltaAngle * (float) Math.PI / 180;\r\n        data.deltaPos *= Config.playerSpeed;\r\n        Pos.X += data.deltaPos.X * MathF.Cos(Angles.X) - data.deltaPos.Y * MathF.Sin(Angles.X);\r\n        Pos.Y += data.deltaPos.Y * MathF.Cos(Angles.X) + data.deltaPos.X * MathF.Sin(Angles.X);\r\n        //Height += data.deltaPos.Z;\r\n\r\n    }\r\n}\r\n\r\npublic static class VectorExt\r\n{\r\n    private const double DegToRad = Math.PI / 180;\r\n\r\n    public static Vector2 Rotate(this Vector2 v, double degrees)\r\n    {\r\n        return v.RotateRadians(degrees * DegToRad);\r\n    }\r\n\r\n    public static Vector2 RotateRadians(this Vector2 v, double radians)\r\n    {\r\n        var ca = (float) Math.Cos(radians);\r\n        var sa = (float) Math.Sin(radians);\r\n        return new Vector2(ca * v.X - sa * v.Y, sa * v.X + ca * v.Y);\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/Player.cs b/VoxelRender/Player.cs
+--- a/VoxelRender/Player.cs	(revision 506ec2d238c4b56c0fe23a967dba906e694575a6)
++++ b/VoxelRender/Player.cs	(date 1662725091070)
+@@ -17,13 +17,13 @@
+ 
+     
+ 
+-    public void Update((Vector2 deltaPos, Vector2 deltaAngle) data)
++    public void Update((Vector2 deltaPos, Vector2 deltaAngle,int deltaHeight) data)
+     {
+         Angles += data.deltaAngle * (float) Math.PI / 180;
+-        data.deltaPos *= Config.playerSpeed;
++        data.deltaPos *= Config.playerGSpeed;
+         Pos.X += data.deltaPos.X * MathF.Cos(Angles.X) - data.deltaPos.Y * MathF.Sin(Angles.X);
+         Pos.Y += data.deltaPos.Y * MathF.Cos(Angles.X) + data.deltaPos.X * MathF.Sin(Angles.X);
+-        //Height += data.deltaPos.Z;
++        Height += data.deltaHeight*Config.playerVSpeed;
+ 
+     }
+ }
+Index: VoxelRender/VoxelRender.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using System.Diagnostics;\r\nusing System.Drawing.Imaging;\r\nusing System.Numerics;\r\n\r\nnamespace VoxelRender;\r\n\r\npublic class VoxelRendering\r\n{\r\n    public string elapsedTime;\r\n    public BMPHandler screenImage;\r\n    private int[,] heightMap;\r\n    private (byte r, byte g, byte b)[,] _textureMap;\r\n    public Player Player;\r\n    private int[] y_buffer = new int[Config.WindowWidth];\r\n\r\n    public VoxelRendering()\r\n    {\r\n        GetHeightMapInts();\r\n        _textureMap = new BMPHandler(ImageHandler.textureMap).matrix;\r\n        Player = new Player();\r\n        screenImage = new BMPHandler(new Bitmap(Config.WindowWidth, Config.WindowHeight, PixelFormat.Format32bppRgb));\r\n    }\r\n\r\n    void GetHeightMapInts()\r\n    {\r\n        var heightHandler = new BMPHandler(ImageHandler.heightMap);\r\n        var (height, width) = (heightHandler.Height, heightHandler.Width);\r\n        heightMap = new int[height, width];\r\n        for (int i = 0; i < height; i++)\r\n        {\r\n            for (int j = 0; j < width; j++)\r\n            {\r\n                heightMap[i, j] = heightHandler[j, i].r;\r\n            }\r\n        }\r\n    }\r\n\r\n    void CalculatePixels(int ray)\r\n    {\r\n        var rayAngle = Player.Angles.X - Config.HFOV + Config.deltaAngle * ray;\r\n\r\n        var firstContact = false;\r\n        var sinA = Math.Sin(rayAngle);\r\n        var cosA = Math.Cos(rayAngle);\r\n        int heightOnSceen;\r\n\r\n\r\n        for (int depth = 1; depth < Config.RayDistance; depth++)\r\n        {\r\n            var x = (int) (Player.Pos.X + depth * cosA);\r\n            if (0 < x && x < Config.MapWidth)\r\n            {\r\n                var y = (int) (Player.Pos.Y + depth * sinA);\r\n                if (0 < y && x < Config.MapHeight)\r\n                {\r\n                    try\r\n                    {\r\n                        heightOnSceen =\r\n                            (int) ((Player.Height - heightMap[x, y]) / depth * 900 + Player.Angles.Y);\r\n                    }\r\n                    catch (Exception e)\r\n                    {\r\n                        break;\r\n                    }\r\n\r\n                    if (!firstContact)\r\n                    {\r\n                        y_buffer[ray] = Math.Min(heightOnSceen, Config.WindowHeight);\r\n                        firstContact = true;\r\n                    }\r\n\r\n                    if (heightOnSceen < 0)\r\n                        heightOnSceen = 0;\r\n                    if (heightOnSceen < y_buffer[ray])\r\n                    {\r\n                        for (int screenY = heightOnSceen; screenY < y_buffer[ray]; screenY++)\r\n                        {\r\n                            screenImage[ray, screenY] =\r\n                                _textureMap[x, y];\r\n                        }\r\n                        y_buffer[ray] = heightOnSceen;\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n\r\n\r\n    public void Update()\r\n    {\r\n        \r\n        Player.Update(KeysHandler.GetState());\r\n        Stopwatch stopWatch = new Stopwatch();\r\n        stopWatch.Start();\r\n        \r\n        Array.Fill(y_buffer, Config.WindowHeight);\r\n        screenImage.Clear();\r\n\r\n        // for (int i = 0; i < Config.WindowWidth; i++)\r\n        // {\r\n        //     CalculatePixels(i);\r\n        // }\r\n        Parallel.For(0, Config.WindowWidth, CalculatePixels);\r\n        // Get the elapsed time as a TimeSpan value.\r\n\r\n        screenImage.UpdateBytes();\r\n        stopWatch.Stop();\r\n        TimeSpan ts = stopWatch.Elapsed;\r\n        elapsedTime = ts.Milliseconds.ToString();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/VoxelRender.cs b/VoxelRender/VoxelRender.cs
+--- a/VoxelRender/VoxelRender.cs	(revision 506ec2d238c4b56c0fe23a967dba906e694575a6)
++++ b/VoxelRender/VoxelRender.cs	(date 1662725091079)
+@@ -1,6 +1,5 @@
+ using System.Diagnostics;
+ using System.Drawing.Imaging;
+-using System.Numerics;
+ 
+ namespace VoxelRender;
+ 
+@@ -78,6 +77,7 @@
+                             screenImage[ray, screenY] =
+                                 _textureMap[x, y];
+                         }
++
+                         y_buffer[ray] = heightOnSceen;
+                     }
+                 }
+@@ -88,21 +88,12 @@
+ 
+     public void Update()
+     {
+-        
+         Player.Update(KeysHandler.GetState());
+         Stopwatch stopWatch = new Stopwatch();
+         stopWatch.Start();
+-        
+         Array.Fill(y_buffer, Config.WindowHeight);
+         screenImage.Clear();
+-
+-        // for (int i = 0; i < Config.WindowWidth; i++)
+-        // {
+-        //     CalculatePixels(i);
+-        // }
+         Parallel.For(0, Config.WindowWidth, CalculatePixels);
+-        // Get the elapsed time as a TimeSpan value.
+-
+         screenImage.UpdateBytes();
+         stopWatch.Stop();
+         TimeSpan ts = stopWatch.Elapsed;
+Index: VoxelRender/Form1.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using System.Drawing.Imaging;\r\nusing System.Numerics;\r\nusing System.Runtime.InteropServices;\r\nusing Timer = System.Windows.Forms.Timer;\r\n\r\n\r\nnamespace VoxelRender;\r\n\r\npublic partial class Form1 : Form\r\n{\r\n    private readonly VoxelRendering vr;\r\n    private BMPHandler bmp;\r\n    private int l;\r\n\r\n    public Form1(VoxelRendering render)\r\n    {\r\n        bmp = new BMPHandler(new Bitmap(500, 500, PixelFormat.Format32bppRgb));\r\n        vr = render;\r\n        KeyDown+=(sender, args) =>KeysHandler.OnPress(args);\r\n        KeyUp+=(sender, args) =>KeysHandler.OnRelease(args);\r\n        \r\n        var tmr = new Timer();\r\n        tmr.Interval = 10;\r\n        tmr.Tick += (sender, args) => Invalidate();\r\n        tmr.Start();\r\n        InitializeComponent();\r\n        \r\n    }\r\n\r\n    protected override void OnPaint(PaintEventArgs e)\r\n    {\r\n        Size = new Size(1000, 800);\r\n\r\n        DoubleBuffered = true;\r\n        var g = e.Graphics;\r\n        vr.Update();\r\n        g.DrawImage(vr.screenImage.GetBmp(), 0, 0, 1000, 800);\r\n        g.DrawString(vr.Player.Pos.ToString(), new Font(\"arial\", 30), new SolidBrush(Color.White), 20, 20);\r\n        g.DrawString(vr.Player.Angles.ToString(), new Font(\"arial\", 30), new SolidBrush(Color.White), 20, 70);\r\n        g.DrawString(vr.elapsedTime, new Font(\"arial\", 30), new SolidBrush(Color.White), 20, 100);\r\n    }\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/Form1.cs b/VoxelRender/Form1.cs
+--- a/VoxelRender/Form1.cs	(revision 506ec2d238c4b56c0fe23a967dba906e694575a6)
++++ b/VoxelRender/Form1.cs	(date 1662725091088)
+@@ -1,6 +1,4 @@
+ using System.Drawing.Imaging;
+-using System.Numerics;
+-using System.Runtime.InteropServices;
+ using Timer = System.Windows.Forms.Timer;
+ 
+ 
+Index: VoxelRender/KeysHandler.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using System.Numerics;\r\n\r\nnamespace VoxelRender;\r\n\r\npublic static class KeysHandler\r\n{\r\n    private static Vector2 _direction;\r\n    private static Vector2 _deltaAnlge;\r\n\r\n\r\n    public static void OnPress(KeyEventArgs e)\r\n    {\r\n        // TODO: Забахать направления и высоту\r\n        switch (e.KeyValue)\r\n        {\r\n            case (int) Keys.A:\r\n                _direction.Y = 1;\r\n                break;\r\n            case (int) Keys.D:\r\n                _direction.Y = -1;\r\n                break;\r\n            case (int) Keys.S:\r\n                _direction.X = -1;\r\n                break;\r\n            case (int) Keys.W:\r\n                _direction.X = 1;\r\n                break;\r\n            // case (int) Keys.Q:\r\n            //     _direction.Z = 1;\r\n            //     break;\r\n            // case (int) Keys.E:\r\n            //     _direction.Z = -1;\r\n            //     break;\r\n            case (int) Keys.Left:\r\n                _deltaAnlge.X = -1;\r\n                break;\r\n            case (int) Keys.Right:\r\n                _deltaAnlge.X = 1;\r\n                break;\r\n            case (int) Keys.Up:\r\n                _deltaAnlge.Y = 60;\r\n                break;\r\n            case (int) Keys.Down:\r\n                _deltaAnlge.Y = -60;\r\n                break;\r\n        }\r\n    }\r\n\r\n    public static void OnRelease(KeyEventArgs e)\r\n    {\r\n        switch (e.KeyValue)\r\n        {\r\n            case (int) Keys.A:\r\n            case (int) Keys.D:\r\n                _direction.Y = 0;\r\n                break;\r\n            case (int) Keys.S:\r\n            case (int) Keys.W:\r\n                _direction.X = 0;\r\n                break;\r\n            // case (int) Keys.Q:\r\n            //     _direction.Z = 0;\r\n            //     break;\r\n            // case (int) Keys.E:\r\n            //     _direction.Z = 0;\r\n            //     break;\r\n            case (int) Keys.Left:\r\n            case (int) Keys.Right:\r\n                _deltaAnlge.X = 0;\r\n                break;\r\n            case (int) Keys.Up:\r\n            case (int) Keys.Down:\r\n                _deltaAnlge.Y = 0;\r\n                break;\r\n        }\r\n    }\r\n\r\n    public static (Vector2, Vector2) GetState() => (_direction, _deltaAnlge);\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/KeysHandler.cs b/VoxelRender/KeysHandler.cs
+--- a/VoxelRender/KeysHandler.cs	(revision 506ec2d238c4b56c0fe23a967dba906e694575a6)
++++ b/VoxelRender/KeysHandler.cs	(date 1662725091098)
+@@ -6,18 +6,19 @@
+ {
+     private static Vector2 _direction;
+     private static Vector2 _deltaAnlge;
++    private static int _deltaHeight;
+ 
+ 
+     public static void OnPress(KeyEventArgs e)
+     {
+-        // TODO: Забахать направления и высоту
++        
+         switch (e.KeyValue)
+         {
+             case (int) Keys.A:
+-                _direction.Y = 1;
++                _direction.Y = -1;
+                 break;
+             case (int) Keys.D:
+-                _direction.Y = -1;
++                _direction.Y = 1;
+                 break;
+             case (int) Keys.S:
+                 _direction.X = -1;
+@@ -25,12 +26,12 @@
+             case (int) Keys.W:
+                 _direction.X = 1;
+                 break;
+-            // case (int) Keys.Q:
+-            //     _direction.Z = 1;
+-            //     break;
+-            // case (int) Keys.E:
+-            //     _direction.Z = -1;
+-            //     break;
++            case (int) Keys.Q:
++                _deltaHeight = 1;
++                break;
++            case (int) Keys.E:
++                _deltaHeight = -1;
++                break;
+             case (int) Keys.Left:
+                 _deltaAnlge.X = -1;
+                 break;
+@@ -38,10 +39,10 @@
+                 _deltaAnlge.X = 1;
+                 break;
+             case (int) Keys.Up:
+-                _deltaAnlge.Y = 60;
++                _deltaAnlge.Y = 200;
+                 break;
+             case (int) Keys.Down:
+-                _deltaAnlge.Y = -60;
++                _deltaAnlge.Y = -200;
+                 break;
+         }
+     }
+@@ -58,12 +59,12 @@
+             case (int) Keys.W:
+                 _direction.X = 0;
+                 break;
+-            // case (int) Keys.Q:
+-            //     _direction.Z = 0;
+-            //     break;
+-            // case (int) Keys.E:
+-            //     _direction.Z = 0;
+-            //     break;
++            case (int) Keys.Q:
++                _deltaHeight = 0;
++                break;
++            case (int) Keys.E:
++                _deltaHeight = 0;
++                break;
+             case (int) Keys.Left:
+             case (int) Keys.Right:
+                 _deltaAnlge.X = 0;
+@@ -75,5 +76,5 @@
+         }
+     }
+ 
+-    public static (Vector2, Vector2) GetState() => (_direction, _deltaAnlge);
++    public static (Vector2, Vector2, int) GetState() => (_direction, _deltaAnlge, _deltaHeight);
+ }
+\ No newline at end of file
+Index: VoxelRender/Program.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using Timer = System.Windows.Forms.Timer;\r\n\r\nnamespace VoxelRender;\r\n\r\nstatic class Program\r\n{\r\n  \r\n    [STAThread]\r\n    static void Main()\r\n    {\r\n        ApplicationConfiguration.Initialize();\r\n        var vxlRender = new VoxelRendering();\r\n        var mainForm = new Form1(vxlRender);\r\n        Application.Run(mainForm);\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/VoxelRender/Program.cs b/VoxelRender/Program.cs
+--- a/VoxelRender/Program.cs	(revision 506ec2d238c4b56c0fe23a967dba906e694575a6)
++++ b/VoxelRender/Program.cs	(date 1662725091106)
+@@ -1,5 +1,3 @@
+-using Timer = System.Windows.Forms.Timer;
+-
+ namespace VoxelRender;
+ 
+ static class Program
